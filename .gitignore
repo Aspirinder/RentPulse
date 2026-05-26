@@ -1,8 +1,13 @@
-
 *.csv
 *.xlsx
 *.xls
+*.json
 
+pics/
+temp_images/
+yolov8x.pt
 venv/
 .conda/
 __pycache__/
+.vscode/
+.env

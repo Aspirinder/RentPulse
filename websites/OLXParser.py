@@ -54,7 +54,7 @@ class OLXParser(BaseParser):
                     clean_src = src.split(';')[0] 
                     image_urls.append(clean_src)
                 
-                offer['Images'] = ", ".join(list(set(image_urls)))
+                offer['Images'] = list(set(image_urls))
             
         except Exception as e:
             print(f"❌ Error on {offer['Link']}: {e}")
