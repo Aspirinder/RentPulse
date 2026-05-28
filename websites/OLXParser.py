@@ -31,7 +31,6 @@ class OLXParser(BaseParser):
                     offers.append(item)
             except Exception as e:
                 print(f"⚠️ Error parsing: {e}")
-
         return offers
 
 

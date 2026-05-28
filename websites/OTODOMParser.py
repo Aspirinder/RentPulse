@@ -112,19 +112,22 @@ class OTODOMParser(BaseParser):
         return offer
     
     # Check if there is next page
-    async def has_next_page(self, content):
-        soup = BeautifulSoup(content, 'html.parser')
+    async def get_total_pages(self, html_content):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        script = soup.find('script', id='__NEXT_DATA__')
     
-        next_button = soup.find('button', {'title': 'Go to next Page'})
-    
-
-        if not next_button:
-            return False
-    
-        if next_button.has_attr('disabled'):
-            return False
-        
-        return True
+        if script:
+            try:
+                data = json.loads(script.string)
+                listing_stats = data.get('props', {}).get('pageProps', {}).get('tracking', {}).get('listing', {})
+            
+                total_pages = listing_stats.get('page_count', 1)
+                print(f"📊 Системные данные Otodom: всего доступно {total_pages} страниц.")
+                return total_pages
+            except Exception as e:
+                print(f"⚠️ Не удалось прочитать page_count из JSON: {e}")
+            
+        return 1
     
 
     def change_page(self ,url, number):

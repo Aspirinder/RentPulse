@@ -48,8 +48,7 @@ class ScraperEngine:
         SYSTEM_CHROMIUM_PATH = '/usr/bin/chromium-browser'
 
         self.browser = await self.playwright.chromium.launch(
-            headless=headless,
-            executable_path=SYSTEM_CHROMIUM_PATH, # Принудительно используем системный браузер
+            headless=headless,# Принудительно используем системный браузер
             args=[
                 '--no-sandbox', 
                 '--disable-setuid-sandbox', 
@@ -195,7 +194,7 @@ class ScraperEngine:
         page = await self.context.new_page()
         print(f"🔎 Scanning: {start_url}")
 
-        await page.goto(start_url, wait_until="networkidle")
+        await page.goto(start_url, wait_until="domcontentloaded")
         content = await page.content()
 
         basic_offers = await parser.parse_list(content)

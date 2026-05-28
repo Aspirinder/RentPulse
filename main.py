@@ -18,7 +18,6 @@ async def main():
     page_number = 1
 
     olx = OLXParser()
-    otodom = OTODOMParser()
     
     while(True):
         
@@ -33,19 +32,17 @@ async def main():
 
     engine.output_file = OTODOM_OUTPUT_FILE
     engine.results = []
-    page_number = 15
 
-    while(True):
+    otodom = OTODOMParser()
 
-        found_count, content = await engine.run_parser(otodom, otodom.change_page(OTODOM_URL, page_number))
+    page_number = 1
 
-        can_go_next = await otodom.has_next_page(content)
+    _, content = await engine.run_parser(otodom, otodom.change_page(OTODOM_URL, page_number))
 
-        if found_count == 0 or not can_go_next:
-            print(f"✅ All pages processed. Finished at page {page_number}.")
-            break
-        
-        page_number += 1
+    max_page_number = await otodom.get_total_pages(content)
+
+    for page_number in range(1, max_page_number+1):
+        _, _ = await engine.run_parser(otodom, otodom.change_page(OTODOM_URL, page_number))
 
     engine.save_to_csv()
     await engine.stop_browser()
