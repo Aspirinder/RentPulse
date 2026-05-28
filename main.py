@@ -15,7 +15,7 @@ async def main():
     engine = ScraperEngine(output_file=OLX_OUTPUT_FILE)
     await engine.start_browser(headless=False)
 
-    page_number = 16
+    page_number = 1
 
     olx = OLXParser()
     otodom = OTODOMParser()

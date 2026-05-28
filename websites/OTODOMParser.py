@@ -105,7 +105,7 @@ class OTODOMParser(BaseParser):
                     images = ad_data.get('images', [])
                     image_urls = [img.get('large') for img in images if img.get('large')]
                     if image_urls:
-                        offer['Images'] = ", ".join(image_urls)
+                        offer['Images'] = list(set(image_urls))
                 
             except Exception as e:
                 print(f"⚠️ JSON Error: {e}")
