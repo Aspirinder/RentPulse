@@ -1,8 +1,10 @@
+.env
+aws.details
+php/aws.details
 
-*.csv
-*.xlsx
-*.xls
+vendor/
+node_modules/
 
-venv/
-.conda/
-__pycache__/
+*.log
+.DS_Store
+Thumbs.db

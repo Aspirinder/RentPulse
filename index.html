@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentPulse</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>RentPulse</h1>
+            <img src="https://i.ibb.co/JRKNdVzt/logo.png" alt="logo_img" class="logo_img">
+        </div>
+        
+        <div class="search_panel">
+            <div class="checkbox_group">
+                <label>
+                    <input type="checkbox" id="olx" value="olx.pl" checked>
+                    <img src="https://i.ibb.co/cfY8660/sites-logo.png" alt="logo_olx_img" class="logo_img">olx.pl
+                </label>
+                <label>
+                    <input type="checkbox" id="otodom" value="otodom.pl" checked>
+                    <img src="https://i.ibb.co/cfY8660/sites-logo.png" alt="logo_olx_img" class="logo_img">otodom.pl</label>
+            </div>
+
+            <button id="search_btn">Search</button>
+
+            <div class="checkbox_group"><label><input type="checkbox" id="combined">Combined</label></div>
+        </div>
+
+        <div id="result_card" class="card hidden">
+            <h2 id="offer_title">Name</h2>
+            <span id="price" class="price">Price</span>
+
+            <div class="slider_container">
+                <button id="prev_img" class="slider_btn btn_left">&#10094;</button>
+                <img id="offer_image" src="" alt="apart_img">
+                <button id="next_img" class="slider_btn btn_right">&#10095;</button>
+            </div>
+
+            <div class="offer_source"><a id="offer_link" href="#" target="_blank">Go to offer</a></div>
+
+            <div class="controls">
+                <button id="save_btn" class="btn_save">Save</button>
+                <button id="next_offer_btn" class="btn_next">Next offer &rarr;</button>
+            </div>
+        </div>
+
+        <div class="bottom_panel">
+            <button id="show_saved_btn" class="show_saved_btn">Show saved offers</button>
+        </div>
+    </div>
+
+    <script defer src="index.js"></script>
+</body>
+</html>
