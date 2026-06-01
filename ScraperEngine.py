@@ -181,12 +181,6 @@ class ScraperEngine:
         
         for offer in basic_offers:
             source_url = offer['Link']
-            print(f"  -> Opening details: {offer['Title'][:30]}")
-            await page.goto(offer['Link'], wait_until="domcontentloaded")
-            await asyncio.sleep(1)
-
-            detail_content = await page.content()
-            details = await parser.parse_details(detail_content, offer)
 
             if "olx" in source_url.lower():
                 site_name = "olx"
@@ -200,8 +194,9 @@ class ScraperEngine:
             if is_in_s3:
                 print(f"⏭️ Already in S3: {offer['Title'][:20]}")
                 continue
-            
-            await page.goto(source_url, wait_until="domcontentloaded")
+
+            print(f"  -> Opening details: {offer['Title'][:30]}")
+            await page.goto(offer['Link'], wait_until="domcontentloaded")
             await asyncio.sleep(1)
 
             detail_content = await page.content()
