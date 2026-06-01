@@ -1,95 +1,132 @@
 <?php
+
+// Specify that the response data is formatted as UTF-8 compliant JSON
 header('Content-Type: application/json; charset=utf-8');
+// Allow Cross-Origin Resource Sharing (CORS) for external client accessibility
 header('Access-Control-Allow-Origin: *');
 
-set_time_limit(300);
 
-require '../vendor/autoload.php';
+// Pull in the default Composer autoloader to resolve external package dependencies
+require __DIR__ . '/../vendor/autoload.php';
 
-use Aws\S3\S3Client;
-use Aws\S3\Exception\S3Exception;
-
-try{
+try {
+    // Attempt to parse the global environment parameters from the root directory
     $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
     $dotenv->load();
-}catch(Exception $e){
-    http_response_code(500);
-    echo json_encode([['title' => 'Server error', 
-    'address' => 'No .env: ' . $e->getMessage(), 'url' => '#', 'images' => []]], JSON_UNESCAPED_UNICODE);
+} catch (Exception $e) {
+    // Terminate thread and return error state if the root configuration file is missing
+    echo json_encode(['success' => false, 'message' => 'No .env configuration file detected.']);
     exit;
 }
 
-$platformInputs = isset($_GET['platforms']) ? trim($_GET['platforms']) : '';
-$platforms = !empty($platformInputs) ? explode(',', $platformInputs) : [];
-$combined = isset($_GET['combined']) ? $_GET['combined'] === 'true' : false;
+// Fetch the base target API Gateway URL from the active environment variables map
+$baseApiUrl = $_ENV['AWS_API'] ?? null;
 
-if(empty($platforms)){
-    echo json_encode([]);
+if (!$baseApiUrl) {
+    echo json_encode(['success' => false, 'message' => 'No AWS_API parameters specified inside .env']);
     exit;
 }
 
-try{
-    $s3Client = new S3Client([
-        'verion' => 'latest',
-        'region' => $_ENV['AWS_REGION'],
-        'credentials' => [
-            'key' => $_ENV['AWS_ACCESS_KEY_ID'],
-            'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'],
-            'token'  => $_ENV['AWS_SESSION_TOKEN']
-        ]
-    ]);
+// Sanitize and extract incoming filtering metrics transmitted via HTTP GET request
+$platformsInput = isset($_GET['platforms']) ? $_GET['platforms'] : ''; 
+$combinedInput  = isset($_GET['combined']) ? $_GET['combined'] : 'false';
 
-    $bucketName = $_ENV['AWS_BUCKET_NAME'];
+if (empty($platformsInput)) {
+    echo json_encode(['status' => 'error', 'message' => 'No target execution platforms selected.']);
+    exit;
+}
 
-    $olxOffers = [];
-    $otodomOffers = [];
+// Explode the plain text platform string into an iterable array index collection
+$platforms = explode(',', $platformsInput);
 
-    foreach($platforms as $platform){
-        $prefix = ($platform === 'olx.pl') ? 'olx/' : 'otodom/';
+// Establish core configuration array map tracking structural parameters sent to AWS
+$queryParams = [
+    'combined' => $combinedInput,
+    'page'     => 1 // Starts query loop at page index position 1
+];
 
-        $objects = $s3Client->getIterator('ListObjects', [
-            'Bucket' => $bucketName,
-            'Prefix' => $prefix
-        ]);
+// Contextual fallback mapping evaluation:
+// If only one platform checkbox is checked, explicitly set the query parameter key.
+// If both platforms are active, do not declare a parameter, allowing AWS to merge records.
+if (count($platforms) === 1) {
+    if (in_array('olx.pl', $platforms)) {
+        $queryParams['source'] = 'olx';
+    } elseif (in_array('otodom.pl', $platforms)) {
+        $queryParams['source'] = 'otodom';
+    }
+}
 
-        foreach($objects as $object){
-            $key = $object['Key'];
+// Initialize internal application memory components
+$allFinalOffers = []; // Master list holding all appended apartment datasets
+$page = 1;            // Active pagination tracker variable
 
-            if(strpos($key, 'ai_verdict.json') !== false){
-                try{
-                    $result = $s3Client->getObject([
-                        'Bucket' => $bucketName,
-                        'Key' => $key
-                    ]);
+// Generate stream context configuration options ensuring proper network communication layers
+$context = stream_context_create([
+    'http' => [
+        'timeout' => 10,                            // Safe termination script guard time (10 seconds max wait)
+        'header'  => "Accept: application/json\r\n" // Declare strict explicit target parsing response type
+    ]
+]);
 
-                    $jsonData = $result['Body']->getContents();
-                    $offerData = json_decode($jsonData, true);
-                    $isCombinedVerdict = isset($offerData['ai_verdict']['is_combined']) ? $offerData['ai_verdict']['is_combined'] : null;
+/* ==========================================================================
+   1. MULTI-PAGE PAGINATION EXTRACTION LOOP (AWS API GATEWAY)
+   ========================================================================== */
+try {
+    // Infinite loop runs indefinitely until breaking conditions are satisfied
+    while (true) {
+        // Overwrite the specific target pagination offset variable
+        $queryParams['page'] = $page;
 
-                    if($combined && $isCombinedVerdict !== true) {continue;}
-                    if (!$combined && $isCombinedVerdict !== false) {continue;}
+        // Formulate a completely clean external link query string
+        $apiUrl = $baseApiUrl . "?" . http_build_query($queryParams);
 
-                    if ($platform === 'olx.pl') {
-                        $olxOffers[] = $offerData;
-                    } else {
-                        $otodomOffers[] = $offerData;
-                    }
-                }catch(Exception $e){
-                    continue;
-                }
-            }
+        // Fetch contents from external cloud stream. Error warning outputs suppressed using '@' operator.
+        $apiResponse = @file_get_contents($apiUrl, false, $context);
+
+        // Breaking Condition 1: If the external link resource returns false, immediately end loop execution
+        if ($apiResponse === false) { break; }
+
+        // Decode the incoming plain text JSON content stream into native associative PHP indices
+        $responseData = json_decode($apiResponse, true);
+
+        // Breaking Condition 2: If the data array component is empty or undefined, all pages have been parsed
+        if (!isset($responseData['data']) || !is_array($responseData['data']) || empty($responseData['data'])) {
+            break; 
         }
+
+        // Loop through the inner response block to map entries to client-side structures
+        foreach ($responseData['data'] as $offer) {
+            $allFinalOffers[] = [
+                'generated_id' => $offer['generated_id'] ?? '',
+                'Title'        => $offer['title'] ?? 'No title',
+                'Price'        => $offer['price'] ?? 'No price',
+                'Link'         => $offer['link'] ?? '#',
+                'Images'       => $offer['images'] ?? [],
+                'source_site'  => $offer['source_site'] ?? 'unknown',
+                'is_combined'  => $offer['is_combined'] ?? false
+            ];
+        }
+
+        // Increment the tracking variable pointer to request the next consecutive page block
+        $page++;
+        
+        // Safety Break: Stop infinite data crawling if tracking index exceeds 20 pages
+        if ($page > 20) { break; }
     }
 
-    $finalOffers = array_merge($olxOffers, $otodomOffers);
+    /* ==========================================================================
+       2. OUTPUT RESPONSE GENERATION
+       ========================================================================== */
+    // Optional: add shuffle($allFinalOffers); right here if you want to mix olx and otodom results!
+    
+    // Convert finalized data array map into plain text JSON stream and echo to browser
+    echo json_encode($allFinalOffers, JSON_UNESCAPED_UNICODE);
 
-    echo json_encode($finalOffers, JSON_UNESCAPED_UNICODE);
-
-} catch (S3Exception $e) {
-    http_response_code(500);
-    echo json_encode([['title' => 'AWS S3 Error', 'address' => $e->getAwsErrorMessage(), 'url' => '#', 'images' => []]], JSON_UNESCAPED_UNICODE);
 } catch (Exception $e) {
+    // Append standard HTTP processing header status error code 500
     http_response_code(500);
-    echo json_encode([['title' => 'Error', 'address' => $e->getMessage(), 'url' => '#', 'images' => []]], JSON_UNESCAPED_UNICODE);
+    echo json_encode([
+        'success' => false, 
+        'message' => 'API Error: ' . $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
-?>

@@ -1,16 +1,18 @@
-/* Определение цветовой палитры из загруженного изображения */
+/* ==========================================================================
+   1. ROOT VARIABLES & GLOBAL RESETS
+   ========================================================================== */
 :root {
     --primary-blue: #5680E9;
     --light-blue: #84CEEB;
     --sky-blue: #5AB9EA;
     --pastel-gray: #C1C8E4;
     --vibrant-purple: #8860D0;
-    --background-grad: linear-gradient(135deg, #84CEEB 0%,#5680E9 35%,#C1C8E4 70%,#8860D0 100%);
+    --background-grad: linear-gradient(135deg, #84CEEB 0%, #5680E9 35%, #C1C8E4 70%, #8860D0 100%);
     --text-dark: #1f3347;
     --white: #ffffff;
 }
 
-
+/* Global box-sizing reset for correct padding/width calculations */
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -18,7 +20,6 @@
 body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background: var(--background-grad);
-    
     background-attachment: fixed;
     color: var(--text-dark);
     display: flex;
@@ -28,6 +29,9 @@ body {
     padding: 40px 20px;
 }
 
+/* ==========================================================================
+   2. MAIN LAYOUT CONTAINER & LOGO
+   ========================================================================== */
 .container {
     width: 100%;
     max-width: 680px;
@@ -38,7 +42,7 @@ body {
     border: 1px solid var(--pastel-gray);
 }
 
-.logo{
+.logo {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -46,12 +50,12 @@ body {
     gap: 10px;
 }
 
-.logo img{
+.logo img {
     width: 70px;
     height: 70px;
 }
 
-.logo_img{
+.logo_img {
     width: 40px;
     height: 40px;
 }
@@ -60,14 +64,15 @@ h1 {
     text-align: center;
     color: var(--vibrant-purple);
     font-size: 32px;
-    margin-top: 0;
-    margin-bottom: 30px;
     letter-spacing: 1px;
     font-weight: 700;
-    margin: 0;
+    margin: 0 0 30px 0;
     padding: 0;
 }
 
+/* ==========================================================================
+   3. SEARCH PANEL & INPUTS
+   ========================================================================== */
 .search_panel {
     display: flex;
     flex-direction: column;
@@ -102,7 +107,7 @@ label input[type="checkbox"] {
     cursor: pointer;
 }
 
-/* Кнопка Поиска */
+/* Main search submit button */
 #search_btn {
     width: 100%;
     padding: 14px 28px;
@@ -126,6 +131,9 @@ label input[type="checkbox"] {
     display: none;
 }
 
+/* ==========================================================================
+   4. OFFER CARD & IMAGE SLIDER
+   ========================================================================== */
 .card {
     border: 1px solid var(--light-blue);
     border-radius: 12px;
@@ -151,11 +159,6 @@ label input[type="checkbox"] {
     transition: all 0.3s ease;
 }
 
-.map_link:hover {
-    color: var(--vibrant-purple);
-    text-decoration: underline;
-}
-
 .slider_container {
     position: relative;
     width: 100%;
@@ -173,6 +176,7 @@ label input[type="checkbox"] {
     transition: all 0.3s ease;
 }
 
+/* Left and right navigation arrows inside the image slider */
 .slider_btn {
     position: absolute;
     top: 50%;
@@ -195,7 +199,7 @@ label input[type="checkbox"] {
 .btn_left { left: 15px; }
 .btn_right { right: 15px; }
 
-/* Блок ссылки на источник */
+/* Original source link formatting */
 .offer_source {
     text-align: center;
     margin-bottom: 25px;
@@ -217,7 +221,7 @@ label input[type="checkbox"] {
     background-color: #46a7d9;
 }
 
-/* Кнопки управления офферами */
+/* Main action controls: Save and Next buttons */
 .controls {
     display: flex;
     gap: 15px;
@@ -255,12 +259,17 @@ label input[type="checkbox"] {
     transition: all 0.3s ease;
 }
 
+/* ==========================================================================
+   5. BOTTOM PANEL & SAVED OFFERS LIST
+   ========================================================================== */
 .bottom_panel {
     margin-top: 25px;
     padding-top: 15px;
     border-top: 1px solid #eee;
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center; /* Horizontally centers the "Show saved offers" button */
     width: 100%;
 }
 
@@ -274,6 +283,7 @@ label input[type="checkbox"] {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
+    width: 200px;
 }
 
 .show_saved_btn:hover {
@@ -282,6 +292,84 @@ label input[type="checkbox"] {
     transform: translateY(-1px);
 }
 
+/* Main wrapper for the extracted database records */
+#saved_offers_list {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto; /* Adds a scrollbar if records exceed max-height */
+    position: relative;
+    width: 100%;
+}
+
+/* Single row containing title, price, and redirection link */
+.saved_offer_row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    gap: 15px;
+}
+
+.saved_offer_row:last-child {
+    border-bottom: none;
+}
+
+/* Handles long string overflowing gracefully using ellipsis (...) */
+.saved_title {
+    flex: 2;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+}
+
+.saved_price {
+    flex: 1;
+    color: #2ecc71;
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.saved_link {
+    flex: 0 0 100px;
+    text-align: center;
+    background: #3498db;
+    color: white;
+    padding: 4px 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: background 0.2s ease;
+}
+
+.saved_link:hover {
+    background: #2980b9;
+}
+
+.no_saved {
+    text-align: center;
+    color: #777;
+    padding: 10px 0;
+}
+
+/* ==========================================================================
+   6. LOADING ANIMATIONS & KEYFRAMES
+   ========================================================================== */
+
+/* Text transparency pulse fade effect */
+@keyframes pulseText {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Card entry fade-in layout effect */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
