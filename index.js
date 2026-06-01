@@ -30,7 +30,7 @@ searchBtn.addEventListener('click', async () =>{
     console.log(`🚀 Start search`);
 
     try{
-        const responce = await fetch(`php/fetch_data.php?platforms=${platforms.join(',')}&combined=${combined}`);
+        const response = await fetch(`php/fetch_data.php?platforms=${platforms.join(',')}&combined=${combined}`);
 
         offers = await responce.json();
         
