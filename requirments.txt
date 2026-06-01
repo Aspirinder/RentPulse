@@ -1,0 +1,7 @@
+modal==1.4.3
+boto3==1.43.14
+playwright==1.60.0
+beautifulsoup4==4.14.3
+httpx==0.28.1
+pandas==3.0.3
+python-dotenv==1.2.2

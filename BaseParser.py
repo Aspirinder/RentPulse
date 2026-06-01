@@ -15,3 +15,8 @@ class BaseParser(ABC):
     def change_page(self, url, number):
         # Method for change page on website
         pass
+
+    @abstractmethod
+    async def start_parse(self, engine, url, output, page_number):
+        # Method for start parsiong
+        pass
